@@ -62,6 +62,7 @@ function mainMenu () {
             }
         })
 };
+// mainMenu()
 
 function viewEmployees () {
     db.promise().query(`SELECT employee.id, employee.first_name, employee.last_name, role.title, department.name, role.salary, CONCAT(manager.first_name, " ", manager.last_name) AS manager 
@@ -76,17 +77,9 @@ function viewEmployees () {
     console.table(rows))
     .then(() => mainMenu())
 }
-
+// viewEmployees()
 
 //TODO: addEmployee
-// Ask first_name
-// Ask last_name
-// Ask role
-    //from list of exixting roles
-// Ask manager
-    //from list of existing employees
-
-
 function addEmployee () {
     inquirer
     .prompt([
@@ -126,10 +119,90 @@ function addEmployee () {
             })
         }
     ])
-    .then 
+    .then( (response) => {
+        console.log(response)
+        console.log(typeof response.role)
+        console.log(roleToId(response.role))
+        db.promise().query(`INSERT INTO employee (first_name, last_name, role_id, manager_id) 
+        VALUES (?, ?, ?, ?)`, [response.firstName, response.lastName, (roleToId(response.role)), managerToId(response.manager) ])
+        .then( () => mainMenu())
+    })
+}
+// addEmployee();
+
+function roleToId (role) {
+    db.promise().query('SELECT id FROM role WHERE title = ?', role)
+    .then( ([rows, fields]) => {
+        return (employeeId = rows.map(data => data.id))
+    })
 }
 
+// function roleToId (role) {
+//     return new Promise ( (resolve, reject) => {
+//         resolve(
+//             db.promise().query('SELECT id FROM role WHERE title = ?', role)
+//             .then( ([rows, fields]) => {
+//                 employeeId = rows.map(data => data.id)
+//             })
+//         )
+       
+//     })
+// }
+
+// function roleToId (role){
+//     return(
+//     db.query('SELECT id FROM role WHERE title = ?', role, (err, results) =>{
+//         console.log(results)
+//         console.log(results.map(data => data.id))
+//          return roleId = results.map(data => data.id)
+        
+//     }))
+    
+// }
+// console.log(roleToId('Sales Lead'))
+
+function managerToId (manager) {
+    const name = manager.split(" ")
+    db.promise().query('SELECT id FROM employee WHERE first_name = ?', name[0])
+    .then( ([rows, fields]) => {
+        console.log(rows)
+        return managerId = rows.map(data => data.id)
+    })
+}
+console.log(managerToId("John Doe"))
+
 //TODO: updateEmployeeRole
+function updateRole () {
+    inquirer
+        .prompt([
+            {
+                type: 'list',
+                message: "Which employee's role do you want to update?",
+                name: 'employee',
+                choices:  () => new Promise( (resolve, reject) => {
+                    resolve(
+                        db.promise().query('SELECT CONCAT(first_name, + " ", + last_name) AS name FROM employee')
+                        .then( ([rows, fields]) => {
+                            return employees = rows.map(employee => employee.name)
+                        })
+                    )
+                })
+            },
+            {
+                type: 'list',
+                message: 'Which role do you want to assign the selected employee?',
+                name: 'role',
+                choices: () => new Promise( (resolve, reject) => {
+                    resolve(
+                        db.promise().query('SELECT title FROM role')
+                        .then( ([rows, fields]) => {
+                        return (roles = rows.map(role => role.title))}
+                    ))
+                })
+            }
+        ])
+}
+// updateRole()
 
 function viewRoles () {
     db.promise().query(`SELECT role.id, role.title, department.name AS department, role.salary 
@@ -140,8 +213,41 @@ function viewRoles () {
     console.table(rows))
     .then(() => mainMenu())
 }
+// viewRoles()
 
 //TODO: addRole
+function addRole() {
+    inquirer
+        .prompt([
+            {
+                type: 'input',
+                message: 'What is the name of the role?',
+                name: 'title'
+            },
+            {
+                type: 'input',
+                message: 'What is the salary of the role?',
+                name: 'salary'
+            },
+            {
+                type: 'list',
+                message: 'Which department does the role belong to?',
+                name: 'department',
+                choices: () => new Promise( (resolve, reject) => {
+                    resolve(
+                        db.promise().query('SELECT name FROM department')
+                        .then( ([rows, fields]) => {
+                        return (departmentss = rows.map(department => department.name))}
+                    ))
+                })
+            }
+        ])
+        .then( (response) => {
+            db.promise().query('INSERT INTO role (title, salary, department_id) VALUES (?, ?, ?', [response.title, response.salary,  XXX] )
+        })
+
+}
+// addRole()
    
 function viewDepartments (){
     db.promise().query('SELECT * FROM department')
@@ -149,6 +255,7 @@ function viewDepartments (){
     console.table(rows))
     .then(() => mainMenu())
 }
+// viewDepartments()
 
 function addDepartment () {
     inquirer
@@ -165,7 +272,5 @@ function addDepartment () {
     })
     .then( () => mainMenu())
 }
+// addDepartment()
 
-
-// mainMenu();
-addEmployee();
