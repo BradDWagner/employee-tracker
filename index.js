@@ -119,57 +119,48 @@ function addEmployee () {
             })
         }
     ])
-    .then( (response) => {
-        console.log(response)
-        console.log(typeof response.role)
-        console.log(roleToId(response.role))
+    .then( async (response) => {
+        const roleId = await roleToId(response.role)
+        const managerId = await managerToId(response.manager)
         db.promise().query(`INSERT INTO employee (first_name, last_name, role_id, manager_id) 
-        VALUES (?, ?, ?, ?)`, [response.firstName, response.lastName, (roleToId(response.role)), managerToId(response.manager) ])
+        VALUES (?, ?, ?, ?)`, [response.firstName, response.lastName, roleId, managerId ])
         .then( () => mainMenu())
     })
 }
-// addEmployee();
+addEmployee();
 
-function roleToId (role) {
-    db.promise().query('SELECT id FROM role WHERE title = ?', role)
-    .then( ([rows, fields]) => {
-        return (employeeId = rows.map(data => data.id))
-    })
-}
-
-// function roleToId (role) {
-//     return new Promise ( (resolve, reject) => {
-//         resolve(
-//             db.promise().query('SELECT id FROM role WHERE title = ?', role)
-//             .then( ([rows, fields]) => {
-//                 employeeId = rows.map(data => data.id)
-//             })
-//         )
+const roleToId = function (role) {
+    return new Promise ( (resolve, reject) => {
+        let employeeId
+        resolve(
+            db.promise().query('SELECT id FROM role WHERE title = ?', role)
+            .then( ([rows, fields]) => {
+               employeeId = rows.map(data => data.id)
+            })
+            .then ( (results) => {
+                return employeeId
+            })
+        )
        
-//     })
-// }
-
-// function roleToId (role){
-//     return(
-//     db.query('SELECT id FROM role WHERE title = ?', role, (err, results) =>{
-//         console.log(results)
-//         console.log(results.map(data => data.id))
-//          return roleId = results.map(data => data.id)
-        
-//     }))
-    
-// }
-// console.log(roleToId('Sales Lead'))
-
-function managerToId (manager) {
-    const name = manager.split(" ")
-    db.promise().query('SELECT id FROM employee WHERE first_name = ?', name[0])
-    .then( ([rows, fields]) => {
-        console.log(rows)
-        return managerId = rows.map(data => data.id)
     })
 }
-console.log(managerToId("John Doe"))
+
+const managerToId = function (manager) {
+    return new Promise ( (resolve, reject) => {
+        let managerId
+        const name = manager.split(" ")
+        resolve(
+            db.promise().query('SELECT id FROM employee WHERE first_name = ?', name[0])
+            .then( ([rows, fields]) => {
+               managerId = rows.map(data => data.id)
+            })
+            .then ( (results) => {
+                return managerId
+            })
+        )
+       
+    })
+}
 
 //TODO: updateEmployeeRole
 function updateRole () {
