@@ -79,7 +79,6 @@ function viewEmployees () {
 }
 // viewEmployees()
 
-//TODO: addEmployee
 function addEmployee () {
     inquirer
     .prompt([
@@ -127,7 +126,7 @@ function addEmployee () {
         .then( () => mainMenu())
     })
 }
-addEmployee();
+// addEmployee();
 
 const roleToId = function (role) {
     return new Promise ( (resolve, reject) => {
@@ -135,13 +134,9 @@ const roleToId = function (role) {
         resolve(
             db.promise().query('SELECT id FROM role WHERE title = ?', role)
             .then( ([rows, fields]) => {
-               employeeId = rows.map(data => data.id)
-            })
-            .then ( (results) => {
-                return employeeId
+               return employeeId = rows.map(data => data.id)
             })
         )
-       
     })
 }
 
@@ -152,17 +147,13 @@ const managerToId = function (manager) {
         resolve(
             db.promise().query('SELECT id FROM employee WHERE first_name = ?', name[0])
             .then( ([rows, fields]) => {
-               managerId = rows.map(data => data.id)
-            })
-            .then ( (results) => {
-                return managerId
+               return managerId = rows.map(data => data.id)
             })
         )
        
     })
 }
 
-//TODO: updateEmployeeRole
 function updateRole () {
     inquirer
         .prompt([
@@ -192,6 +183,12 @@ function updateRole () {
                 })
             }
         ])
+        .then( async(response) => {
+            const roleId = await roleToId(response.role);
+            const employeeId = await managerToId(response.employee)
+            db.promise().query('UPDATE employee SET role_id = ? WHERE id = ?', [roleId, employeeId])
+            .then( () => mainMenu())
+        })
 }
 // updateRole()
 
