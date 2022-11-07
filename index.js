@@ -62,7 +62,7 @@ function mainMenu () {
             }
         })
 };
-// mainMenu()
+mainMenu()
 
 function viewEmployees () {
     db.promise().query(`SELECT employee.id, employee.first_name, employee.last_name, role.title, department.name, role.salary, CONCAT(manager.first_name, " ", manager.last_name) AS manager 
@@ -112,7 +112,7 @@ function addEmployee () {
                 resolve(
                     db.promise().query('SELECT CONCAT(first_name, + " ", + last_name) AS name FROM employee')
                     .then( ([rows, fields]) => {
-                        return managers = rows.map(manager => manager.name)
+                        return (managers = rows.map(manager => manager.name))
                     })
                 )
             })
@@ -123,8 +123,9 @@ function addEmployee () {
         const managerId = await managerToId(response.manager)
         db.promise().query(`INSERT INTO employee (first_name, last_name, role_id, manager_id) 
         VALUES (?, ?, ?, ?)`, [response.firstName, response.lastName, roleId, managerId ])
-        .then( () => mainMenu())
+        console.log(`Added ${response.firstName} ${response.lastName} to the database`)
     })
+    .then( () => mainMenu())
 }
 // addEmployee();
 
@@ -151,6 +152,18 @@ const managerToId = function (manager) {
             })
         )
        
+    })
+}
+
+const departmentToId = function (department) {
+    return new Promise ( (resolve, reject) => {
+        let departmentId
+        resolve (
+            db.promise().query('SELECT id FROM department WHERE name = ?', department)
+            .then( ([rows, fields]) => {
+                return departmentId = rows.map(data => data.id)
+            })
+        )
     })
 }
 
@@ -187,8 +200,9 @@ function updateRole () {
             const roleId = await roleToId(response.role);
             const employeeId = await managerToId(response.employee)
             db.promise().query('UPDATE employee SET role_id = ? WHERE id = ?', [roleId, employeeId])
-            .then( () => mainMenu())
+            console.log(`${response.employee}'s role has been updated in database`)
         })
+        .then( () => mainMenu())
 }
 // updateRole()
 
@@ -203,7 +217,6 @@ function viewRoles () {
 }
 // viewRoles()
 
-//TODO: addRole
 function addRole() {
     inquirer
         .prompt([
@@ -230,9 +243,12 @@ function addRole() {
                 })
             }
         ])
-        .then( (response) => {
-            db.promise().query('INSERT INTO role (title, salary, department_id) VALUES (?, ?, ?', [response.title, response.salary,  XXX] )
+        .then( async (response) => {
+            const departmentId = await departmentToId(response.department)
+            db.promise().query('INSERT INTO role (title, salary, department_id) VALUES (?, ?, ?)', [response.title, response.salary, departmentId] )
+            console.log(`Added ${response.title} to the database`)
         })
+        .then( () => mainMenu())
 
 }
 // addRole()
