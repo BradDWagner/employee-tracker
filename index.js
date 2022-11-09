@@ -1,9 +1,13 @@
+//import node modules
 const inquirer = require('inquirer');
 const mysql = require('mysql2');
 const cTable = require('console.table');
+
+//import helper functions
 const { roleToId, employeeToId, departmentToId } = require('./helpers/toId')
 const { roleList, managerList, employeeList, departmentList } = require('./helpers/lists')
 
+//establish database connection
 const db = mysql.createConnection(
     {
         host: 'localhost',
@@ -14,6 +18,7 @@ const db = mysql.createConnection(
     console.log('Connected to the db')
 )
 
+//handle main menu 
 function mainMenu() {
     inquirer
         .prompt([
@@ -64,12 +69,14 @@ function mainMenu() {
         })
 };
 
+//return list of employee data
 async function viewEmployees() {
     const [rows] = await db.promise().query(`SELECT employee.id, employee.first_name, employee.last_name, role.title, department.name, role.salary, CONCAT(manager.first_name, " ", manager.last_name) AS manager FROM employee JOIN role ON employee.role_id = role.id JOIN department ON role.department_id = department.id LEFT OUTER JOIN employee AS manager ON employee.manager_id = manager.id`);
     console.table(rows);
     mainMenu();
 }
 
+//add an employee to the database
 function addEmployee() {
     inquirer
         .prompt([
@@ -97,7 +104,9 @@ function addEmployee() {
             }
         ])
         .then(async (response) => {
+            //convert role title to role ID
             const roleId = await roleToId(response.role);
+            //convert manager's name to employee ID
             const managerId = await employeeToId(response.manager);
             db.promise().query(`INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES (?, ?, ?, ?)`, [response.firstName, response.lastName, roleId, managerId]);
             console.log(`Added ${response.firstName} ${response.lastName} to the database`);
@@ -105,6 +114,7 @@ function addEmployee() {
         .then(() => mainMenu());
 }
 
+//update an employee's role
 function updateRole() {
     inquirer
         .prompt([
@@ -122,7 +132,9 @@ function updateRole() {
             }
         ])
         .then(async (response) => {
+            //convert role title to role ID
             const roleId = await roleToId(response.role);
+            //convert employee's name to employee ID
             const employeeId = await employeeToId(response.employee)
             db.promise().query('UPDATE employee SET role_id = ? WHERE id = ?', [roleId, employeeId])
             console.log(`${response.employee}'s role has been updated in database`)
@@ -130,12 +142,14 @@ function updateRole() {
         .then(() => mainMenu())
 }
 
+//return list of roles
 async function viewRoles() {
     const [rows] = await db.promise().query(`SELECT role.id, role.title, department.name AS department, role.salary FROM role   JOIN department ON role.department_id = department.id`);
     console.table(rows);
     mainMenu();
 }
 
+//add a role to the database
 function addRole() {
     inquirer
         .prompt([
@@ -157,6 +171,7 @@ function addRole() {
             }
         ])
         .then(async (response) => {
+            //convert department name to department ID
             const departmentId = await departmentToId(response.department)
             db.promise().query('INSERT INTO role (title, salary, department_id) VALUES (?, ?, ?)', [response.title, response.salary, departmentId]);
             console.log(`Added ${response.title} to the database`);
@@ -164,12 +179,14 @@ function addRole() {
         .then(() => mainMenu());
 }
 
+//return list of department data
 async function viewDepartments () {
     const [rows] = await db.promise().query('SELECT * FROM department');
     console.table(rows);
     mainMenu();
 }
 
+//add a department to the database
 function addDepartment() {
     inquirer
         .prompt([
@@ -186,6 +203,7 @@ function addDepartment() {
         .then(() => mainMenu());
 }
 
+//begin application
 function init () {
     console.log("Welcome to the Employee Tracker!")
     mainMenu()
