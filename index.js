@@ -71,7 +71,7 @@ function mainMenu() {
 
 //return list of employee data
 async function viewEmployees() {
-    const [rows] = await db.promise().query(`SELECT employee.id, employee.first_name, employee.last_name, role.title, department.name, role.salary, CONCAT(manager.first_name, " ", manager.last_name) AS manager FROM employee JOIN role ON employee.role_id = role.id JOIN department ON role.department_id = department.id LEFT OUTER JOIN employee AS manager ON employee.manager_id = manager.id`);
+    const [rows] = await db.promise().query(`SELECT employee.id, employee.first_name, employee.last_name, role.title AS role, department.name AS department, role.salary, CONCAT(manager.first_name, " ", manager.last_name) AS manager FROM employee JOIN role ON employee.role_id = role.id JOIN department ON role.department_id = department.id LEFT OUTER JOIN employee AS manager ON employee.manager_id = manager.id`);
     console.table(rows);
     mainMenu();
 }

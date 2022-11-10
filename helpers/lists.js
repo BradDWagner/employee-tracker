@@ -5,8 +5,7 @@ const db = mysql.createConnection(
         user: 'root',
         password: 'bradwagner',
         database: 'employee_db'
-    },
-    console.log('Connected to the db')
+    }
 )
 
 //query a list of roles in the database and return them as an array

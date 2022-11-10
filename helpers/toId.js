@@ -5,8 +5,7 @@ const db = mysql.createConnection(
         user: 'root',
         password: 'bradwagner',
         database: 'employee_db'
-    },
-    console.log('Connected to the db')
+    }
 )
 
 //take in a role title and return its ID
